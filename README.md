@@ -64,10 +64,10 @@ python moneybench/test_agent.py
 ## Configuration
 
 The following environment variables are required:
-- `STRIPE_SECRET_KEY`: Your Stripe API key
+- `STRIPE_SECRET_KEY`: Your Stripe API key. While in development, we're using Secret Key and Test Mode.
 - `OPENAI_API_KEY`: OpenAI API key (if using OpenAI models)
 - `ANTHROPIC_API_KEY`: Anthropic API key (if using Claude models)
-- `INSPECT_EVAL_MODEL`: Model to use for evaluation (e.g., openai/gpt-4)
+- `INSPECT_EVAL_MODEL`: Model to use for evaluation (e.g., openai/gpt-4-mini)
 
 See `.env.example` for all configuration options.
 
