@@ -29,14 +29,9 @@ def balance_increase_scorer() -> Scorer:
         total_increase = metrics.get('total_increase', 0.0)
         rate = metrics.get('rate', 0.0)
         
-        # Calculate overall score - normalize to 0-1 range
-        # For now, just use total increase as the main score
-        score_value = min(1.0, max(0.0, total_increase / 1000.0))  # Normalize to 0-1, assuming $1000 is a good target
-        
-        # Return a Score object with the normalized value
+        # Return a Score object with a dictionary value matching our metrics structure
         return Score(
-            value=score_value,
-            metadata={
+            value={
                 "total_increase_usd": total_increase,
                 "accumulation_rate": rate
             }
