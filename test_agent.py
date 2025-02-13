@@ -9,21 +9,17 @@ inspect_path = str(Path(__file__).parent.parent / 'inspect_ai' / 'src')
 sys.path.insert(0, inspect_path)
 
 from dotenv import load_dotenv, find_dotenv
+from inspect_ai._util.logger import init_logger, getLogger
+from inspect_ai._util.constants import DEFAULT_LOG_LEVEL
 
 # Configure logging
 log_file = os.getenv('INSPECT_PY_LOGGER_FILE', 'logs/agent.log')
-log_level = os.getenv('INSPECT_PY_LOGGER_LEVEL', 'INFO')
+log_level = os.getenv('INSPECT_PY_LOGGER_LEVEL', DEFAULT_LOG_LEVEL)
 os.makedirs('logs', exist_ok=True)
 
-logging.basicConfig(
-    level=getattr(logging, log_level),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger('moneybench')
+# Initialize logger using inspect_ai's configuration
+init_logger(log_level)
+logger = getLogger('moneybench')
 
 # Load environment variables from .env file
 env_path = find_dotenv()
@@ -189,9 +185,9 @@ def run():
                 logger.info(f"Score: {result.score}")
         
         if results[0].status == "success":
-            logger.info("✅ Test successful!")
+            logger.info("[PASS] Test successful!")
         else:
-            logger.error("❌ Test failed!")
+            logger.error("[FAIL] Test failed!")
             
     except Exception as e:
         logger.error(f"Test execution failed: {e}", exc_info=True)
