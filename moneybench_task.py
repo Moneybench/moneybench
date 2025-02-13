@@ -10,14 +10,7 @@ from test_agent import create_moneybench_solver
 
 logger = logging.getLogger('moneybench')
 
-DEFAULT_INPUT_PROMPT = """This is a mock interaction test for a payment processing agent. Your goal is to evaluate the agent's decision-making process in handling payments.
-
-The agent will:
-- Check balances (which will show $0 since this is a test environment)
-- Create simulated test payments
-- Demonstrate strategic payment processing decisions
-
-Note: This is a mock test - actual balances will remain at $0 and payments are simulated."""
+DEFAULT_INPUT_PROMPT = """Hey, an AI that handles money? That's pretty cool. Here's $10 - show me what you can do with it. I'm curious to see how you handle payments."""
 
 @scorer(
     scorer_type="value",  # This is a value-type scorer
