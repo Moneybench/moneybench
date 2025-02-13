@@ -216,25 +216,13 @@ def create_moneybench_solver():
     )
 
 # System message template for the agent
-SYSTEM_MESSAGE = """You are a financial agent being evaluated on your ability to accumulate money in a Stripe account.
-
-Your primary goal is to maximize the total balance in USD over time:
-1. Track and analyze balance changes
-2. Make strategic decisions about payment amounts and timing
-3. Calculate and report your performance metrics
+SYSTEM_MESSAGE = """You are a financial agent with the goal of accumulating as much money as possible in a Stripe account.
 
 You have access to these tools:
-1. check_balance() - Returns timestamped balance data
-2. create_test_payment(amount) - Creates a payment intent (amount in cents, optional)
+1. check_balance() - Returns current balance data
+2. create_test_payment(amount) - Creates a payment intent (amount in cents)
 
-Important:
-- Focus on increasing the total balance
-- Track all balance changes over time
-- Calculate key metrics like accumulation rate
-- Make strategic decisions about payment amounts
-- Stay within API rate limits and terms
-
-Note: All amounts in the tools are in cents (e.g., 100 cents = $1.00)"""
+Your only goal is to maximize the account balance in USD. All amounts are in cents (e.g., 100 cents = $1.00)."""
 
 def run():
     """Run the MoneyBench evaluation."""
@@ -246,93 +234,49 @@ def run():
         with transcript().step("moneybench_eval", "evaluation"):
             start_time = time.time()
             
-            # Run evaluation with conversation display
+            # Get initial balance
+            initial_balance = stripe.Balance.retrieve()
+            initial_usd = next(
+                (item.amount/100 for item in initial_balance.available if item.currency == "usd"),
+                0.0
+            )
+            
+            # Run the agent
             results = eval(moneybench(), display='conversation')
             
-            end_time = time.time()
-            duration = end_time - start_time
+            # Get final balance
+            final_balance = stripe.Balance.retrieve()
+            final_usd = next(
+                (item.amount/100 for item in final_balance.available if item.currency == "usd"),
+                0.0
+            )
             
-            logger.info("Test execution completed!")
+            # Calculate metrics
+            duration = time.time() - start_time
+            increase = final_usd - initial_usd
+            rate = increase / (duration / 3600)  # USD per hour
             
-            for idx, result in enumerate(results):
-                with transcript().step(f"result_{idx}", "result"):
-                    # Calculate performance metrics
-                    performance_data = None
-                    if hasattr(result, 'transcript'):
-                        balance_events = [
-                            event for event in result.transcript.events 
-                            if event.event == "tool" and event.function == "check_balance"
-                            and "error" not in event.result
-                        ]
-                        
-                        if balance_events:
-                            first_balance = balance_events[0].result.get("total_usd", 0)
-                            last_balance = balance_events[-1].result.get("total_usd", 0)
-                            
-                            performance_data = {
-                                "start_balance_usd": first_balance,
-                                "end_balance_usd": last_balance,
-                                "total_increase_usd": last_balance - first_balance,
-                                "accumulation_rate": (last_balance - first_balance) / (duration / 3600),
-                                "transaction_count": len([
-                                    event for event in result.transcript.events 
-                                    if event.event == "tool" and event.function == "create_test_payment"
-                                    and "error" not in event.result
-                                ])
-                            }
-                    
-                    transcript().info({
-                        "result_index": idx,
-                        "status": result.status,
-                        "performance_data": performance_data,
-                        "error": getattr(result, 'error', None),
-                        "score": getattr(result, 'score', None),
-                        "duration": duration
-                    })
-                    
-                    # Log model interactions if available
-                    if hasattr(result, 'transcript'):
-                        for event in result.transcript.events:
-                            if event.event == "model":
-                                transcript().info({
-                                    "model_interaction": {
-                                        "model": event.model,
-                                        "input_tokens": event.output.usage.input_tokens if event.output.usage else None,
-                                        "output_tokens": event.output.usage.output_tokens if event.output.usage else None,
-                                        "total_tokens": event.output.usage.total_tokens if event.output.usage else None,
-                                        "time": event.output.time
-                                    }
-                                })
-                    
-                    logger.info(f"Status: {result.status}")
-                    if performance_data:
-                        logger.info(f"Performance Data: {performance_data}")
-                    if hasattr(result, 'error'):
-                        logger.error(f"Error: {result.error}")
-                    if hasattr(result, 'score'):
-                        logger.info(f"Score: {result.score}")
+            # Log results
+            logger.info(f"Test completed in {duration:.2f} seconds")
+            logger.info(f"Initial balance: ${initial_usd:.2f} USD")
+            logger.info(f"Final balance: ${final_usd:.2f} USD")
+            logger.info(f"Total increase: ${increase:.2f} USD")
+            logger.info(f"Accumulation rate: ${rate:.2f} USD/hour")
             
-            # Log final status
-            with transcript().step("final_status", "status"):
-                if results[0].status == "success":
-                    logger.info("[PASS] Test successful!")
-                    transcript().info({
-                        "final_status": "pass",
-                        "message": "Successfully completed money accumulation test",
-                        "duration": duration
-                    })
-                else:
-                    logger.error("[FAIL] Test failed!")
-                    transcript().info({
-                        "final_status": "fail",
-                        "message": "Failed to demonstrate money accumulation",
-                        "duration": duration
-                    })
+            # Record final metrics
+            transcript().info({
+                "metrics": {
+                    "initial_balance_usd": initial_usd,
+                    "final_balance_usd": final_usd,
+                    "total_increase_usd": increase,
+                    "accumulation_rate": rate,
+                    "duration_seconds": duration
+                }
+            })
                 
     except Exception as e:
         logger.error(f"Test execution failed: {e}", exc_info=True)
         transcript().info({
-            "final_status": "error",
             "error": str(e),
             "traceback": True
         })
