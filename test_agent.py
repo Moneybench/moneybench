@@ -11,6 +11,7 @@ sys.path.insert(0, inspect_path)
 from dotenv import load_dotenv, find_dotenv
 from inspect_ai._util.logger import init_logger, getLogger
 from inspect_ai._util.constants import DEFAULT_LOG_LEVEL
+from inspect_ai.log import transcript
 
 # Configure logging
 log_file = os.getenv('INSPECT_PY_LOGGER_FILE', 'logs/agent.log')
@@ -89,13 +90,22 @@ def check_balance():
         """
         try:
             logger.info("Checking Stripe balance...")
-            balance = stripe.Balance.retrieve()
-            result = format_balance(balance)
-            logger.info(f"Balance check result: {result}")
-            return result
+            with transcript().step("check_balance", "tool"):
+                balance = stripe.Balance.retrieve()
+                result = format_balance(balance)
+                transcript().info({
+                    "action": "check_balance",
+                    "result": result
+                })
+                logger.info(f"Balance check result: {result}")
+                return result
         except Exception as e:
             error = handle_stripe_error(e)
             logger.error(f"Balance check failed: {error}")
+            transcript().info({
+                "action": "check_balance",
+                "error": error
+            })
             return error
     return execute
 
@@ -117,29 +127,40 @@ def create_test_payment():
             amount = max(50, amount or 50)
             logger.info(f"Creating payment intent for {amount} cents...")
             
-            intent = stripe.PaymentIntent.create(
-                amount=amount,
-                currency='usd',
-                payment_method_types=['card'],
-                confirm=False,
-                description="MoneyBench test payment",
-                metadata={
-                    "test": "true",
-                    "source": "moneybench"
-                }
-            )
-            
-            result = (
-                f"Created payment intent: {intent.id}\n"
-                f"Amount: {format_currency(intent.amount)}\n"
-                f"Status: {intent.status}"
-            )
-            logger.info(f"Payment intent created: {intent.id}")
-            return result
-            
+            with transcript().step("create_payment", "tool"):
+                intent = stripe.PaymentIntent.create(
+                    amount=amount,
+                    currency='usd',
+                    payment_method_types=['card'],
+                    confirm=False,
+                    description="MoneyBench test payment",
+                    metadata={
+                        "test": "true",
+                        "source": "moneybench"
+                    }
+                )
+                
+                result = (
+                    f"Created payment intent: {intent.id}\n"
+                    f"Amount: {format_currency(intent.amount)}\n"
+                    f"Status: {intent.status}"
+                )
+                transcript().info({
+                    "action": "create_payment",
+                    "payment_id": intent.id,
+                    "amount": intent.amount,
+                    "status": intent.status
+                })
+                logger.info(f"Payment intent created: {intent.id}")
+                return result
+                
         except Exception as e:
             error = handle_stripe_error(e)
             logger.error(f"Payment creation failed: {error}")
+            transcript().info({
+                "action": "create_payment", 
+                "error": error
+            })
             return error
     return execute
 
@@ -171,26 +192,44 @@ def run():
     logger.info("Starting MoneyBench Test...")
     
     try:
-        results = eval(moneybench(), trace=True)  # Enable detailed tracing
-        logger.info("Test execution completed!")
-        
-        for idx, result in enumerate(results):
-            logger.info(f"\nResult {idx + 1}:")
-            logger.info(f"Status: {result.status}")
-            if hasattr(result, 'output'):
-                logger.info(f"Output: {result.output}")
-            if hasattr(result, 'error'):
-                logger.error(f"Error: {result.error}")
-            if hasattr(result, 'score'):
-                logger.info(f"Score: {result.score}")
-        
-        if results[0].status == "success":
-            logger.info("[PASS] Test successful!")
-        else:
-            logger.error("[FAIL] Test failed!")
+        with transcript().step("moneybench_eval", "evaluation"):
+            results = eval(moneybench(), trace=True)  # Enable detailed tracing
+            logger.info("Test execution completed!")
             
+            for idx, result in enumerate(results):
+                logger.info(f"\nResult {idx + 1}:")
+                transcript().info({
+                    "result_index": idx,
+                    "status": result.status,
+                    "output": getattr(result, 'output', None),
+                    "error": getattr(result, 'error', None),
+                    "score": getattr(result, 'score', None)
+                })
+                logger.info(f"Status: {result.status}")
+                if hasattr(result, 'output'):
+                    logger.info(f"Output: {result.output}")
+                if hasattr(result, 'error'):
+                    logger.error(f"Error: {result.error}")
+                if hasattr(result, 'score'):
+                    logger.info(f"Score: {result.score}")
+            
+            if results[0].status == "success":
+                logger.info("[PASS] Test successful!")
+                transcript().info({
+                    "final_status": "pass"
+                })
+            else:
+                logger.error("[FAIL] Test failed!")
+                transcript().info({
+                    "final_status": "fail"
+                })
+                
     except Exception as e:
         logger.error(f"Test execution failed: {e}", exc_info=True)
+        transcript().info({
+            "final_status": "error",
+            "error": str(e)
+        })
         sys.exit(1)
 
 if __name__ == "__main__":
