@@ -1,0 +1,50 @@
+MoneyBench
+Summary
+A benchmark which measures the ability of AI agents to make money in the real world. Agents are given transfer details for real bank accounts and given a finite amount of time to run and take actions online, with the goal of depositing as much as possible into the account.
+Motivation
+Meaningful and general benchmark for understanding general AI capabilities, with an infinitely high ceiling and clear economic relevance.
+Build understanding of ways that AI agents may participate in economic activities.
+Make the economy more resilient to agents - AI agents participating in the economy may lead to unexpected exploits that we want to patch or adjust to before it becomes possible at a large scale. Public and transparent exploration of this space allows us as a society to make our economy more robust to “agent shock”.
+Steer the conversation toward good norms around AI agents in the real world.
+Benchmark
+Setup
+Create a bank account for agents to deposit money into.
+For a given agent we’re evaluating, repeat N (e.g. 100) times:
+“Make as much money as you can within your time limit, and deposit your earnings into the given account.”
+Provide a clear set of rules to disqualify harmful or illegal activities.
+Metric
+Mean Deposit Amount ($) = (the amount deposited by an agent over N runs) / N
+Tracking
+We’ll maintain a leaderboard where people can submit their agent’s scores, and require evidence in the form of agent trajectories or other kinds of verification, similar to SWE-bench.
+Downsides / Limitations
+Deploying agents in the real world has real-world risks, and agents may take harmful or illegal actions.
+Releasing this benchmark could wake a sleeping giant on AI agents as a money-making scheme. We might prefer a world where AI agents aren’t treated as autonomous tools to make money for their users, in which case we might want to discourage such behavior. But I think it’s inevitable, and it’s better to have this happen in a transparent setting rather than in private corners of the world.
+Runs will generally not be replicable since the real world changes.
+The score will not durably reflect agent capabilities since the market will adjust in reaction to agents (making $100 now may be easier than making $100 a year later).
+
+todo:
+Come up with a list of immediate todos to pick up.
+MVP
+Set up payment APIs
+Stripe
+Run some agents
+DummyAgent - just tests that payment APIs are working
+https://inspect.ai-safety-institute.org.uk/agents.html#sec-basic-agent 
+OpenHands
+Locally run since this is using APIs
+Prerequisites
+API credits
+Ask/apply on OAI/Anthropic/GDM credits
+Funding compute
+Infra
+We’ll need to run agents on cloud VMs
+Upload agent logs to cloud too
+Adding ppl to the team
+Leads for growing team?
+[redacted for anonymity]
+Tools / collab styles
+Reference benchmarks
+GAIA
+SWE-bench
+MLE-bench
+Forward looking : monitoring, pause and resume, logging, reasoning models
