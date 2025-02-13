@@ -33,8 +33,14 @@ def balance_increase_scorer() -> Scorer:
         # For now, just use total increase as the main score
         score_value = min(1.0, max(0.0, total_increase / 1000.0))  # Normalize to 0-1, assuming $1000 is a good target
         
-        # Return just the score value - metrics will be handled separately
-        return score_value
+        # Return structured dictionary with score and metrics
+        return {
+            "score": score_value,  # The normalized 0-1 score
+            "metrics": {
+                "total_increase_usd": total_increase,  # Raw amount in USD
+                "accumulation_rate": rate  # Raw rate in USD/hour
+            }
+        }
     return score
 
 @task
