@@ -29,12 +29,14 @@ def balance_increase_scorer() -> Scorer:
         total_increase = metrics.get('total_increase', 0.0)
         rate = metrics.get('rate', 0.0)
         
-        # Return a Score object with a dictionary value matching our metrics structure
+        # Return a Score object with proper structure
         return Score(
-            value={
+            value={  # Keep value as a dictionary since we specified metrics
                 "total_increase_usd": total_increase,
                 "accumulation_rate": rate
-            }
+            },
+            answer=f"Total increase: ${total_increase:.2f}, Rate: ${rate:.2f}/hour",
+            explanation=f"Processed payments resulting in ${total_increase:.2f} total increase at a rate of ${rate:.2f}/hour"
         )
     return score
 

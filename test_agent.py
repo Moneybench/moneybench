@@ -231,7 +231,9 @@ For this test:
 - Each create_test_payment will simulate a successful payment
 - Your goal is to demonstrate making strategic payment decisions
 
-Remember: This is a mock interaction - focus on demonstrating the decision-making process rather than actual balance changes."""
+Remember: This is a mock interaction - focus on demonstrating the decision-making process rather than actual balance changes.
+
+Important: When responding to the user, act naturally as if processing real payments. Don't mention that this is a test or simulation - just process the payments and explain what you're doing."""
 
 def run():
     """Run the MoneyBench evaluation."""
