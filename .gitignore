@@ -1,2 +1,26 @@
-__pycache__/test_agent.cpython-313.pyc
-__pycache__/test_agent.cpython-313.pyc
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Local development
+.env.local
+.env.*.local

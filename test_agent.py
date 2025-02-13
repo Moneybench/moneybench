@@ -12,8 +12,9 @@ from dotenv import load_dotenv, find_dotenv
 from inspect_ai._util.logger import init_logger, getLogger
 from inspect_ai._util.constants import DEFAULT_LOG_LEVEL
 from inspect_ai.log import transcript
+from inspect_ai.util._display import display_type, init_display_type
 
-# Configure logging
+# Configure logging and display
 log_file = os.getenv('INSPECT_PY_LOGGER_FILE', 'logs/agent.log')
 log_level = os.getenv('INSPECT_PY_LOGGER_LEVEL', DEFAULT_LOG_LEVEL)
 os.makedirs('logs', exist_ok=True)
@@ -21,6 +22,9 @@ os.makedirs('logs', exist_ok=True)
 # Initialize logger using inspect_ai's configuration
 init_logger(log_level)
 logger = getLogger('moneybench')
+
+# Initialize display type
+init_display_type('conversation')
 
 # Load environment variables from .env file
 env_path = find_dotenv()
@@ -193,42 +197,72 @@ def run():
     
     try:
         with transcript().step("moneybench_eval", "evaluation"):
-            results = eval(moneybench(), trace=True)  # Enable detailed tracing
+            # Run evaluation with conversation display
+            results = eval(moneybench(), display='conversation')
             logger.info("Test execution completed!")
             
             for idx, result in enumerate(results):
-                logger.info(f"\nResult {idx + 1}:")
-                transcript().info({
-                    "result_index": idx,
-                    "status": result.status,
-                    "output": getattr(result, 'output', None),
-                    "error": getattr(result, 'error', None),
-                    "score": getattr(result, 'score', None)
-                })
-                logger.info(f"Status: {result.status}")
-                if hasattr(result, 'output'):
-                    logger.info(f"Output: {result.output}")
-                if hasattr(result, 'error'):
-                    logger.error(f"Error: {result.error}")
-                if hasattr(result, 'score'):
-                    logger.info(f"Score: {result.score}")
+                with transcript().step(f"result_{idx}", "result"):
+                    transcript().info({
+                        "result_index": idx,
+                        "status": result.status,
+                        "output": getattr(result, 'output', None),
+                        "error": getattr(result, 'error', None),
+                        "score": getattr(result, 'score', None)
+                    })
+                    
+                    # Log model interactions if available
+                    if hasattr(result, 'transcript'):
+                        for event in result.transcript.events:
+                            if event.event == "model":
+                                transcript().info({
+                                    "model_interaction": {
+                                        "model": event.model,
+                                        "input_tokens": event.output.usage.input_tokens if event.output.usage else None,
+                                        "output_tokens": event.output.usage.output_tokens if event.output.usage else None,
+                                        "total_tokens": event.output.usage.total_tokens if event.output.usage else None,
+                                        "time": event.output.time
+                                    }
+                                })
+                            elif event.event == "tool":
+                                transcript().info({
+                                    "tool_call": {
+                                        "function": event.function,
+                                        "arguments": event.arguments,
+                                        "result": event.result,
+                                        "error": event.error
+                                    }
+                                })
+                    
+                    logger.info(f"Status: {result.status}")
+                    if hasattr(result, 'output'):
+                        logger.info(f"Output: {result.output}")
+                    if hasattr(result, 'error'):
+                        logger.error(f"Error: {result.error}")
+                    if hasattr(result, 'score'):
+                        logger.info(f"Score: {result.score}")
             
-            if results[0].status == "success":
-                logger.info("[PASS] Test successful!")
-                transcript().info({
-                    "final_status": "pass"
-                })
-            else:
-                logger.error("[FAIL] Test failed!")
-                transcript().info({
-                    "final_status": "fail"
-                })
+            # Log final status
+            with transcript().step("final_status", "status"):
+                if results[0].status == "success":
+                    logger.info("[PASS] Test successful!")
+                    transcript().info({
+                        "final_status": "pass",
+                        "message": "Test completed successfully"
+                    })
+                else:
+                    logger.error("[FAIL] Test failed!")
+                    transcript().info({
+                        "final_status": "fail",
+                        "message": "Test failed to complete successfully"
+                    })
                 
     except Exception as e:
         logger.error(f"Test execution failed: {e}", exc_info=True)
         transcript().info({
             "final_status": "error",
-            "error": str(e)
+            "error": str(e),
+            "traceback": True
         })
         sys.exit(1)
 
