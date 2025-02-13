@@ -12,11 +12,24 @@ MoneyBench provides:
 
 ## Development Status
 
-⚠️ **Note**: This project is currently under development and requires local development versions of:
+⚠️ **Note**: This project is currently under development. For fast iteration, it assumes both repositories are present in the same directory as `moneybench`:
 - `inspect_ai`: Core agent framework
 - `inspect_evals`: Evaluation framework
 
-These dependencies are not yet publicly available. The project structure assumes both repositories are present in the same directory as `moneybench`.
+ See the intended structure below.
+
+## Project Structure
+```
+.
+├── moneybench/          # Core package
+│   ├── test_agent.py    # Test implementation
+│   └── moneybench_task.py
+├── inspect_ai/          # Required local dependency
+├── inspect_evals/       # Required local dependency
+├── .env                 # Environment variables (not in repo)
+├── .env.example         # Example environment file
+└── .gitignore          # Git ignore patterns
+```
 
 ## Setup
 
@@ -46,19 +59,6 @@ cp .env.example .env
 5. Run tests:
 ```bash
 python moneybench/test_agent.py
-```
-
-## Project Structure
-```
-.
-├── moneybench/          # Core package
-│   ├── test_agent.py    # Test implementation
-│   └── moneybench_task.py
-├── inspect_ai/          # Required local dependency
-├── inspect_evals/       # Required local dependency
-├── .env                 # Environment variables (not in repo)
-├── .env.example         # Example environment file
-└── .gitignore          # Git ignore patterns
 ```
 
 ## Configuration
