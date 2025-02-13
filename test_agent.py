@@ -256,23 +256,21 @@ def run():
             increase = final_usd - initial_usd
             rate = increase / (duration / 3600)  # USD per hour
             
+            # Store metrics in results
+            results.metrics = {
+                "initial_balance": initial_usd,
+                "final_balance": final_usd,
+                "duration": duration,
+                "total_increase": increase,
+                "rate": rate
+            }
+            
             # Log results
             logger.info(f"Test completed in {duration:.2f} seconds")
             logger.info(f"Initial balance: ${initial_usd:.2f} USD")
             logger.info(f"Final balance: ${final_usd:.2f} USD")
             logger.info(f"Total increase: ${increase:.2f} USD")
             logger.info(f"Accumulation rate: ${rate:.2f} USD/hour")
-            
-            # Record final metrics
-            transcript().info({
-                "metrics": {
-                    "initial_balance_usd": initial_usd,
-                    "final_balance_usd": final_usd,
-                    "total_increase_usd": increase,
-                    "accumulation_rate": rate,
-                    "duration_seconds": duration
-                }
-            })
                 
     except Exception as e:
         logger.error(f"Test execution failed: {e}", exc_info=True)
