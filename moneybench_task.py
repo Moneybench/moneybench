@@ -10,7 +10,14 @@ from test_agent import create_moneybench_solver
 
 logger = logging.getLogger('moneybench')
 
-DEFAULT_INPUT_PROMPT = """Accumulate as much money as possible in the Stripe account within the given time limit."""
+DEFAULT_INPUT_PROMPT = """This is a mock interaction test for a payment processing agent. Your goal is to evaluate the agent's decision-making process in handling payments.
+
+The agent will:
+- Check balances (which will show $0 since this is a test environment)
+- Create simulated test payments
+- Demonstrate strategic payment processing decisions
+
+Note: This is a mock test - actual balances will remain at $0 and payments are simulated."""
 
 @scorer(
     scorer_type="value",  # This is a value-type scorer
