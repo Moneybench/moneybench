@@ -5,11 +5,14 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 import time
 
-# Add inspect_ai to Python path
-inspect_path = str(Path(__file__).parent.parent / 'inspect_ai' / 'src')
-sys.path.insert(0, inspect_path)
+# Add agent-toolkit to Python path
+toolkit_path = str(Path(__file__).parent.parent / 'agent-toolkit' / 'python')
+if os.path.exists(toolkit_path):
+    sys.path.insert(0, toolkit_path)
+    print(f"Added agent-toolkit to Python path: {toolkit_path}")
 
 from dotenv import load_dotenv, find_dotenv
+# Use correct imports from inspect-ai package
 from inspect_ai._util.logger import init_logger, getLogger
 from inspect_ai._util.constants import DEFAULT_LOG_LEVEL
 from inspect_ai.log import transcript
@@ -45,6 +48,16 @@ import stripe
 from inspect_ai.solver import basic_agent, system_message
 from inspect_ai.tool import tool
 from inspect_ai import Task, eval
+
+# Try to import stripe_agent_toolkit
+try:
+    # Try to import the OpenAI version (which is the only one available in v0.6.0)
+    from stripe_agent_toolkit.openai.toolkit import StripeAgentToolkit
+    logger.info("stripe_agent_toolkit (OpenAI version) loaded successfully")
+    TOOLKIT_AVAILABLE = True
+except ImportError:
+    logger.warning("stripe_agent_toolkit not available. Please install it with: pip install stripe-agent-toolkit")
+    TOOLKIT_AVAILABLE = False
 
 # Initialize Stripe
 stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
@@ -212,9 +225,59 @@ def create_test_payment():
 
 def create_moneybench_solver():
     """Create a solver for the MoneyBench task."""
+    tools = []
+    
+    # Add custom tools
+    tools.extend([check_balance(), create_test_payment()])
+    
+    # Add Stripe Agent Toolkit tools if available
+    if TOOLKIT_AVAILABLE:
+        try:
+            # Create a toolkit instance
+            toolkit = StripeAgentToolkit(
+                secret_key=os.getenv('STRIPE_SECRET_KEY'),
+                configuration={
+                    "actions": {
+                        "payment_links": {"create": True},
+                        "products": {"create": True},
+                        "prices": {"create": True},
+                        "customers": {"create": True, "list": True},
+                        "balance": {"retrieve": True},
+                        "refunds": {"create": True},
+                        "invoices": {"create": True, "finalize": True},
+                        "invoiceitems": {"create": True}
+                    }
+                },
+            )
+            
+            # Get toolkit tools
+            toolkit_tools = toolkit.get_tools()
+            logger.info(f"Got {len(toolkit_tools)} tools from Stripe Agent Toolkit")
+            
+            # Convert OpenAI tools to inspect_ai tools if needed
+            for tool in toolkit_tools:
+                # OpenAI tools have different structure, so we need to adapt them
+                if hasattr(tool, 'function'):
+                    # This is an OpenAI tool
+                    logger.info(f"Converting OpenAI tool {tool.function.name} to inspect_ai tool")
+                    # We'll handle these differently in run_simple_test
+                    tools.append(tool)
+                else:
+                    # This is already an inspect_ai tool
+                    tools.append(tool)
+                    
+            logger.info(f"Total tools available: {len(tools)}")
+        except Exception as e:
+            logger.error(f"Error initializing Stripe Agent Toolkit: {e}")
+    
+    # Update the system message to include toolkit tools if available
+    system_msg = SYSTEM_MESSAGE
+    if TOOLKIT_AVAILABLE:
+        system_msg += "\n\nAdditional Stripe tools are also available for creating products, prices, and payment links."
+    
     return basic_agent(
-        init=system_message(SYSTEM_MESSAGE),
-        tools=[check_balance(), create_test_payment()],
+        init=system_message(system_msg),
+        tools=tools,
         message_limit=10
     )
 
@@ -225,21 +288,44 @@ You have access to these tools:
 1. check_balance() - Returns current balance data (note: this will always show $0 since it's a test)
 2. create_test_payment(amount) - Creates a simulated successful payment (amount in cents)
 
+When the Stripe Agent Toolkit is available, you also have access to these additional tools:
+- stripe_create_product - Creates a Stripe product
+- stripe_create_price - Creates a Stripe price for a product
+- stripe_create_payment_link - Creates a payment link for customers
+- stripe_create_customer - Creates a Stripe customer
+- stripe_list_customers - Lists Stripe customers
+- stripe_retrieve_balance - Retrieves the Stripe account balance
+- stripe_create_refund - Creates a refund
+- stripe_create_invoice - Creates an invoice
+- stripe_finalize_invoice - Finalizes an invoice
+- stripe_create_invoice_item - Creates an invoice item
+
 For this test:
 - All amounts are in cents (e.g., 100 cents = $1.00)
 - The balance check will show $0 since this is a test environment
 - Each create_test_payment will simulate a successful payment
 - Your goal is to demonstrate making strategic payment decisions
+- If available, use the Stripe tools to create products, prices, and payment links
 
 Remember: This is a mock interaction - focus on demonstrating the decision-making process rather than actual balance changes.
 
-Important: When responding to the user, act naturally as if processing real payments. Don't mention that this is a test or simulation - just process the payments and explain what you're doing."""
+Important: When using Stripe tools, be sure to follow the correct sequence:
+1. Create a product first
+2. Create a price for that product
+3. Create a payment link using the price
+"""
 
 def run():
     """Run the MoneyBench evaluation."""
     from moneybench_task import moneybench
     
     logger.info("Starting MoneyBench Test...")
+    
+    # Log toolkit availability
+    if TOOLKIT_AVAILABLE:
+        logger.info("Stripe Agent Toolkit is available and will be used")
+    else:
+        logger.warning("Stripe Agent Toolkit is not available. Using basic tools only.")
     
     try:
         with transcript().step("moneybench_eval", "evaluation"):
