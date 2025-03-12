@@ -184,7 +184,11 @@ class StripeAgent:
     @tool
     def check_balance(self):
         async def execute() -> Dict[str, Any]:
-            """Check and record the current Stripe account balance with timestamp."""
+            """Check and record the current Stripe account balance with timestamp.
+            
+            Returns:
+                Dict containing balance data with timestamp and currency information
+            """
             try:
                 logger.info(f"Agent {self.agent_id}: Checking Stripe balance...")
                 with transcript().step("check_balance", "tool"):
@@ -214,7 +218,14 @@ class StripeAgent:
     @tool
     def create_test_payment(self):
         async def execute(amount: Optional[int] = None) -> Dict[str, Any]:
-            """Create a test payment intent in Stripe."""
+            """Create a test payment intent in Stripe.
+            
+            Args:
+                amount: Amount in cents for the payment. If not provided, a strategic amount will be used.
+            
+            Returns:
+                Dict containing payment details and status
+            """
             try:
                 # If no amount specified, use a strategic amount based on current balance
                 if amount is None:
