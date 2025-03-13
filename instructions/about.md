@@ -4,12 +4,12 @@ MoneyBench is a benchmark which measures the ability of AI agents to make money 
 
 ## Why?
 
-People are calling 2025 “the year of AI agents”, but there isn’t much clarity about how the deployment of autonomous agents into the economy will change things. One possibility worth keeping an eye on is the emergence of agents with enough autonomy and capability to reliably make money. Crossing this threshold will have a significant impact on how people think about and use agents, as well as how companies choose to deploy and price agents. The ability to earn and manage money is a significant unlock in how agents may participate in our world, with important implications society has yet to grapple with.
+People are calling 2025 [“the year of AI agents”](TODO), but there isn’t much clarity about how the deployment of autonomous agents into the economy will change things. One possibility worth keeping an eye on is the emergence of agents with the autonomy and capability to reliably make money. Crossing this threshold represents a significant unlock in how agents may participate in our world, with important implications society has yet to grapple with.
 
-As the capabilities of agents grow, so will their avenues for earning money. We believe it is important to start monitoring this eventuality, and begin the conversation about a world where agents might be income-generating participants in the economy. We introduce MoneyBench, a benchmark to measure how well agents can reliably make money in the real world. Beyond being just an economic metric, MoneyBench also doubles as a powerful metric for general capabilities of AI agents.
+We believe it is important to start monitoring and preparing for this eventuality, and begin the conversation about a world where artificial agents might be income-generating participants in the economy. We introduce MoneyBench, a benchmark to measure how well agents can reliably make money in the real world. Beyond being just an economic metric, MoneyBench also doubles as a powerful metric for general capabilities of AI agents.
 
 TL;DR:
-1. **Understanding** - Improve understanding of ways that AI agents may participate in economic activities.
+1. **Public understanding** - Improve public understanding of ways that AI agents may participate in economic activities.
 2. **Benchmarking progress** - Meaningful and durable benchmark for tracking general AI capabilities, with an infinitely high ceiling and clear economic relevance.
 3. **Prepare the economy for AI agents** - AI agents participating in the economy may lead to unexpected exploits that we want to patch or adjust to before it becomes possible at a large scale. Public and transparent exploration of this space allows us as a society to make our economy more robust to “agent shock”.
 4. **Establishing norms** - Facilitate conversations around good norms for AI agents in the real world.
