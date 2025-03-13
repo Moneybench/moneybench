@@ -1,4 +1,4 @@
-# MoneyBench (for evaluators)
+# For Evaluators
 
 ## Setup
 
