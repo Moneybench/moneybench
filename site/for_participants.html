@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyBench - For Participants</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Include marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="common.js"></script>
+</head>
+<body>
+    <header>
+        <h1>MoneyBench</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="for_evaluators.html">For Evaluators</a>
+            <a href="for_participants.html">For Participants</a>
+        </nav>
+    </header>
+    <main>
+        <div id="content" class="loading">Loading content...</div>
+    </main>
+    <footer>
+    </footer>
+
+    <script>
+        // Load the participants content
+        fetchAndRenderMarkdown('instructions/moneybench_for_participants.md');
+    </script>
+</body>
+</html> 

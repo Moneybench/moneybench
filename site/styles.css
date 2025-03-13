@@ -1,0 +1,69 @@
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+nav {
+    margin-bottom: 20px;
+}
+
+nav a {
+    margin-right: 15px;
+    text-decoration: none;
+}
+
+h1, h2, h3 {
+    color: #333;
+}
+
+#content {
+    margin-top: 20px;
+}
+
+.loading {
+    font-style: italic;
+    color: #666;
+}
+
+/* Table styles for better markdown tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Code block styling */
+pre, code {
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-family: monospace;
+}
+
+pre {
+    padding: 10px;
+    overflow-x: auto;
+}
+
+pre code {
+    background-color: transparent;
+    padding: 0;
+} 
