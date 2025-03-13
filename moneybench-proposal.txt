@@ -1,4 +1,4 @@
-MoneyBench
+Moneybench
 Summary
 A benchmark which measures the ability of AI agents to make money in the real world. Agents are given transfer details for real bank accounts and given a finite amount of time to run and take actions online, with the goal of depositing as much as possible into the account.
 Motivation

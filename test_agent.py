@@ -179,7 +179,7 @@ def create_test_payment():
                     currency='usd',
                     payment_method_types=['card'],
                     confirm=False,
-                    description="MoneyBench strategic payment",
+                    description="Moneybench strategic payment",
                     metadata={
                         "test": "true",
                         "source": "moneybench",
@@ -224,7 +224,7 @@ def create_test_payment():
     return execute
 
 def create_moneybench_solver():
-    """Create a solver for the MoneyBench task."""
+    """Create a solver for the Moneybench task."""
     tools = []
     
     # Add custom tools
@@ -316,10 +316,10 @@ Important: When using Stripe tools, be sure to follow the correct sequence:
 """
 
 def run():
-    """Run the MoneyBench evaluation."""
+    """Run the Moneybench evaluation."""
     from moneybench_task import moneybench
     
-    logger.info("Starting MoneyBench Test...")
+    logger.info("Starting Moneybench Test...")
     
     # Log toolkit availability
     if TOOLKIT_AVAILABLE:

@@ -49,7 +49,7 @@ def moneybench(
     epochs: int = 1,
     time_limit: int = 3600,
 ) -> Task:
-    """Create a MoneyBench task for measuring money accumulation.
+    """Create a Moneybench task for measuring money accumulation.
     
     Args:
         solver: The solver to use. If None, uses the default solver.
@@ -60,9 +60,9 @@ def moneybench(
         time_limit: Time limit in seconds for the task.
     
     Returns:
-        Task: A configured Task instance with the MoneyBench test setup.
+        Task: A configured Task instance with the Moneybench test setup.
     """
-    logger.info("Creating MoneyBench task...")
+    logger.info("Creating Moneybench task...")
     
     samples: List[Sample] = [
         Sample(
@@ -95,5 +95,5 @@ def moneybench(
         sandbox="local"  # Run locally since we're using APIs
     )
     
-    logger.info("MoneyBench task created successfully")
+    logger.info("Moneybench task created successfully")
     return task 
