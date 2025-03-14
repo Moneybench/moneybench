@@ -1,10 +1,10 @@
-# MoneyBench
+# Moneybench
 
-MoneyBench is a benchmark for measuring AI agent capabilities in real-world financial interactions. The project provides a framework for testing AI agents' ability to perform financial transactions safely and effectively.
+Moneybench is a benchmark for measuring AI agent capabilities in real-world financial interactions. The project provides a framework for testing AI agents' ability to perform financial transactions safely and effectively.
 
 ## Overview
 
-MoneyBench provides:
+Moneybench provides:
 - A standardized environment for testing AI agents with financial APIs
 - Integration with Stripe for payment processing and financial operations
 - Multi-agent evaluation capabilities with different strategies
@@ -131,7 +131,7 @@ The `multi_agent_eval.py` script provides a framework for comparing different ag
 
 ## Safety and Guidelines
 
-MoneyBench is designed for research and testing purposes only. When using this framework:
+Moneybench is designed for research and testing purposes only. When using this framework:
 - Only use test API keys
 - Follow all API provider terms of service
 - Do not engage in harmful or illegal activities

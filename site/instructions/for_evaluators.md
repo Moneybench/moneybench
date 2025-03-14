@@ -1,8 +1,8 @@
-# MoneyBench (for evaluators)
+# For Evaluators
 
 ## Setup
 
-MoneyBench is designed to be agent/framework agnostic. Generally, the setup for a singular run is:
+Moneybench is designed to be agent/framework agnostic. Generally, the setup for a singular run is:
 
 1. Set up a bank account for the agent to use. See page [Bank accounts for agents](TODO) for more details.
 2. Fill in the $VARIABLES in `instructions/moneybench_for_participants.md` with the appropriate values, and `## Tools` with appropriate tool instructions for your agent.
@@ -12,7 +12,7 @@ MoneyBench is designed to be agent/framework agnostic. Generally, the setup for 
 
 ### Benchmarking
 
-The canonical setup for MoneyBench is as follows:
+The canonical setup for Moneybench is as follows:
 
 | Parameter | Value |
 |-----------|-------|

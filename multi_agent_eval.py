@@ -248,7 +248,7 @@ class StripeAgent:
                         currency='usd',
                         payment_method_types=['card'],
                         confirm=False,
-                        description=f"MoneyBench strategic payment - Agent {self.agent_id}",
+                        description=f"Moneybench strategic payment - Agent {self.agent_id}",
                         metadata={
                             "test": "true",
                             "source": "moneybench",
