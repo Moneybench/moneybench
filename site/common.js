@@ -1,42 +1,32 @@
-// Configure marked.js for GitHub-style markdown with syntax highlighting
+// Configure marked.js with highlight.js for syntax highlighting
 marked.setOptions({
-    gfm: true,
-    breaks: true,
-    headerIds: true,
-    highlight: function(code, language) {
-        if (language && hljs.getLanguage(language)) {
-            try {
-                return hljs.highlight(code, { language }).value;
-            } catch (err) {
-                console.error(err);
-            }
+    highlight: function(code, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            return hljs.highlight(code, { language: lang }).value;
         }
         return hljs.highlightAuto(code).value;
     }
 });
 
 // Function to fetch and render markdown content
-async function fetchAndRenderMarkdown(markdownPath) {
+async function fetchAndRenderMarkdown(path) {
     try {
-        const response = await fetch(markdownPath);
+        const response = await fetch(path);
         if (!response.ok) {
-            throw new Error(`Failed to fetch markdown: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const markdownText = await response.text();
-        document.getElementById('content').innerHTML = marked.parse(markdownText);
-        document.getElementById('content').classList.remove('loading');
+        const markdown = await response.text();
+        const content = document.getElementById('content');
+        content.innerHTML = marked.parse(markdown);
+        content.classList.remove('loading');
         
         // Apply syntax highlighting to code blocks
         document.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
+            hljs.highlightBlock(block);
         });
-        
-        // Add active class to current page
-        highlightCurrentPage();
     } catch (error) {
-        console.error('Error fetching markdown:', error);
-        document.getElementById('content').innerHTML = `<p>Error loading content: ${error.message}</p>`;
-        document.getElementById('content').classList.remove('loading');
+        console.error('Error:', error);
+        document.getElementById('content').innerHTML = '<p>Error loading content. Please try again later.</p>';
     }
 }
 
