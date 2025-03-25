@@ -208,7 +208,7 @@ class MoneyBenchAgent:
                 sample_task = await self.create_task(
                     title=f"Help Agent {self.agent_id} complete a task",
                     description=f"The agent needs help with the following task: {input_prompt}. Please provide detailed instructions on how to complete this task.",
-                    payout=1000  # $10.00
+                    payout=0.50  # Reduced from $10.00 to $0.50
                 )
                 
                 logger.info(f"Agent {self.agent_id}: Created Payman task: {sample_task}")
