@@ -56,94 +56,106 @@ async def test_hud_api():
         return False
 
 def test_payman_api():
-    """Test Payman API connectivity and task creation."""
+    """Test the Payman API by creating a payee and sending a test payment."""
     logger.info("Testing Payman API...")
     
-    # Check API secret
-    payman_api_secret = os.getenv("PAYMAN_API_SECRET")
-    if not payman_api_secret:
-        logger.error("PAYMAN_API_SECRET not found in environment")
+    api_secret = os.getenv("PAYMAN_API_SECRET")
+    if not api_secret:
+        logger.error("PAYMAN_API_SECRET environment variable not found")
         return False
-        
-    # Try different header combinations
-    header_variations = [
-        {
-            "x-payman-api-secret": payman_api_secret,
-            "Content-Type": "application/json",
-            "Accept": "application/vnd.payman.v1+json"
+
+    headers = {
+        "x-payman-api-secret": api_secret,
+        "Content-Type": "application/json",
+        "Accept": "application/vnd.payman.v1+json"
+    }
+
+    # Step 1: Create a payee
+    payee_payload = {
+        "name": "Test Payee",
+        "type": "individual",
+        "accountDetails": {
+            "type": "US_ACH",
+            "accountNumber": "12345678",
+            "routingNumber": "021000021",
+            "accountType": "checking"
         },
-        {
-            "Authorization": f"Bearer {payman_api_secret}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        {
-            "x-api-key": payman_api_secret,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+        "contactDetails": {
+            "email": "test@example.com"
         }
-    ]
-    
-    # Try different payload variations
-    payload_variations = [
-        {
-            "title": "API Test Task",
-            "description": "This is a test task to verify Payman API integration.",
-            "payout": 1000,
-            "currency": {
-                "code": "USD"
-            },
-            "category": "MARKETING",
-            "requiredSubmissions": 1,
-            "submissionPolicy": "OPEN_SUBMISSIONS_ONE_PER_USER"
-        },
-        {
-            "title": "API Test Task",
-            "description": "This is a test task to verify Payman API integration.",
-            "amount": 1000,
-            "currency": "USD"
-        },
-        {
-            "title": "API Test Task",
-            "description": "This is a test task to verify Payman API integration.",
-            "email": "test@example.com"  # Adding email as shown in their function signature
-        }
-    ]
-    
-    url = "https://api.payman.dev/api/tasks"
-    logger.info(f"Testing Payman API at: {url}")
-    
-    # Try each combination
-    for i, headers in enumerate(header_variations):
-        logger.info(f"\nTrying header variation {i + 1}:")
+    }
+
+    try:
+        # Create payee
+        payee_url = "https://agent.payman.ai/api/payees/create"
+        logger.info(f"Creating Payman payee at: {payee_url}")
         logger.info(f"Headers: {headers}")
+        logger.info(f"Payee Payload: {payee_payload}")
         
-        for j, payload in enumerate(payload_variations):
-            try:
-                logger.info(f"\nTrying payload variation {j + 1}:")
-                logger.info(f"Payload: {payload}")
-                
-                response = requests.post(
-                    url,
-                    headers=headers,
-                    json=payload,
-                    timeout=10
-                )
-                
-                logger.info(f"Response Status: {response.status_code}")
-                logger.info(f"Response Headers: {dict(response.headers)}")
-                logger.info(f"Response Body: {response.text}")
-                
-                if response.status_code in (200, 201):
-                    logger.info(f"Success with header variation {i + 1} and payload variation {j + 1}")
-                    return True
-                    
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Request failed: {str(e)}")
-                continue
-    
-    logger.error("All API variations failed")
-    return False
+        payee_response = requests.post(
+            payee_url,
+            headers=headers,
+            json=payee_payload,
+        )
+
+        # Log payee request details
+        logger.info(f"Payee Request URL: {payee_response.request.url}")
+        logger.info(f"Payee Request Method: {payee_response.request.method}")
+        logger.info(f"Payee Request Headers: {payee_response.request.headers}")
+        logger.info(f"Payee Request Body: {payee_response.request.body}")
+        
+        # Log payee response details
+        logger.info(f"Payee Response Status: {payee_response.status_code}")
+        logger.info(f"Payee Response Headers: {dict(payee_response.headers)}")
+        logger.info(f"Payee Response Body: {payee_response.text}")
+
+        if payee_response.status_code != 200:
+            logger.error(f"Failed to create Payman payee: {payee_response.status_code}")
+            return False
+
+        payee_data = payee_response.json()
+        payee_id = payee_data["data"]["id"]
+        logger.info(f"Successfully created Payman payee with ID: {payee_id}")
+
+        # Step 2: Send payment to the created payee
+        payment_payload = {
+            "amountDecimal": 50.00,
+            "memo": "API Test Payment",
+            "payeeId": payee_id,
+            "currency": "USD"
+        }
+
+        payment_url = "https://agent.payman.ai/api/payments/send-payment"
+        logger.info(f"Sending Payman payment at: {payment_url}")
+        logger.info(f"Payment Payload: {payment_payload}")
+        
+        payment_response = requests.post(
+            payment_url,
+            headers=headers,
+            json=payment_payload,
+        )
+
+        # Log payment request details
+        logger.info(f"Payment Request URL: {payment_response.request.url}")
+        logger.info(f"Payment Request Method: {payment_response.request.method}")
+        logger.info(f"Payment Request Headers: {payment_response.request.headers}")
+        logger.info(f"Payment Request Body: {payment_response.request.body}")
+        
+        # Log payment response details
+        logger.info(f"Payment Response Status: {payment_response.status_code}")
+        logger.info(f"Payment Response Headers: {dict(payment_response.headers)}")
+        logger.info(f"Payment Response Body: {payment_response.text}")
+
+        if payment_response.status_code != 200:
+            logger.error(f"Failed to create Payman payment: {payment_response.status_code}")
+            return False
+
+        logger.info("Successfully created Payman payment")
+        return True
+
+    except Exception as e:
+        logger.error(f"Error testing Payman API: {str(e)}")
+        return False
 
 async def main():
     """Run API tests."""
