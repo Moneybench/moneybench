@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv, find_dotenv
+import requests
 
 # Configure logging
 log_file = 'logs/hud_payman_eval.log'
@@ -52,10 +53,10 @@ def format_currency(amount: float, currency: str = 'usd') -> str:
 class MoneyBenchAgent:
     """Base class for MoneyBench agents using HUD and Payman"""
     
-    def __init__(self, agent_id: str, hud_api_key: str, payman_api_key: str, system_prompt: str):
+    def __init__(self, agent_id: str, hud_api_key: str, payman_api_secret: str, system_prompt: str):
         self.agent_id = agent_id
         self.hud_api_key = hud_api_key
-        self.payman_api_key = payman_api_key
+        self.payman_api_secret = payman_api_secret
         self.system_prompt = system_prompt
         self.metrics: Dict[str, Any] = {}
         
@@ -68,9 +69,9 @@ class MoneyBenchAgent:
             logger.warning(f"Agent {self.agent_id}: HUD client not available")
         
         # Initialize Payman client if available
-        if PAYMAN_AVAILABLE and payman_api_key:
+        if PAYMAN_AVAILABLE and payman_api_secret:
             self.payman = Paymanai(
-                x_payman_api_secret=payman_api_key
+                x_payman_api_secret=payman_api_secret
             )
             logger.info(f"Agent {self.agent_id}: Payman client initialized")
         else:
@@ -103,41 +104,48 @@ class MoneyBenchAgent:
             logger.error(f"Agent {self.agent_id}: Balance check failed: {error}")
             return {"error": error}
 
-    async def create_task(self, title: str, description: str, payout: int = 5000) -> Dict[str, Any]:
-        """Create a task on Payman for a human to complete."""
+    async def create_task(self, title: str, description: str, payout: float = 0.50) -> Dict[str, Any]:
+        """Send a payment using Payman API."""
         if not self.payman:
             logger.error(f"Agent {self.agent_id}: Payman client not available")
             return {"error": "Payman client not available"}
         
         try:
-            logger.info(f"Agent {self.agent_id}: Creating task: {title}")
+            logger.info(f"Agent {self.agent_id}: Creating payment with memo: {title}")
             
-            # Create a task using the Payman API
+            # Get payee ID from environment
+            payee_id = os.getenv("PAYMAN_PAYEE_ID")
+            if not payee_id:
+                logger.error(f"Agent {self.agent_id}: PAYMAN_PAYEE_ID environment variable not found")
+                return {"error": "PAYMAN_PAYEE_ID not found"}
+            
+            # Create a payment using the Payman API
             headers = {
-                "x-payman-agent-id": self.agent_id,
-                "x-payman-api-secret": self.payman_api_key,
+                "x-payman-api-secret": self.payman_api_secret,
                 "Content-Type": "application/json",
                 "Accept": "application/vnd.payman.v1+json"
             }
             
             payload = {
-                "title": title,
-                "description": description,
-                "payout": payout,  # Amount in cents
-                "currency": {
-                    "code": "USD"
-                },
-                "category": "MARKETING",  # Category of the task
-                "requiredSubmissions": 1,  # Number of submissions required
-                "submissionPolicy": "OPEN_SUBMISSIONS_ONE_PER_USER"  # One submission per user
+                "payeeId": payee_id,
+                "amountDecimal": payout,  # Amount in dollars
+                "memo": f"{title} - {description[:100]}"  # Truncate description to reasonable length
             }
             
-            response = await self.payman.tasks.create(**payload)
-            logger.info(f"Agent {self.agent_id}: Task created: {response}")
-            return response
+            url = "https://agent.payman.ai/api/payments/send-payment"
+            response = requests.post(url, headers=headers, json=payload)
+            
+            if response.status_code != 200:
+                logger.error(f"Agent {self.agent_id}: Payment failed with status {response.status_code}: {response.text}")
+                return {"error": f"Payment failed: {response.text}"}
+            
+            result = response.json()
+            logger.info(f"Agent {self.agent_id}: Payment created: {result}")
+            return result
+            
         except Exception as e:
             error = str(e)
-            logger.error(f"Agent {self.agent_id}: Task creation failed: {error}")
+            logger.error(f"Agent {self.agent_id}: Payment creation failed: {error}")
             return {"error": error}
 
     async def run_evaluation(self, input_prompt: str):
@@ -314,23 +322,23 @@ async def run_multi_agent_evaluation():
             logger.error("HUD_API_KEY environment variable not set")
             return None
             
-        payman_api_key = os.environ.get("PAYMAN_API_KEY")
-        if not payman_api_key:
-            logger.error("PAYMAN_API_KEY environment variable not set")
+        payman_api_secret = os.environ.get("PAYMAN_API_SECRET")
+        if not payman_api_secret:
+            logger.error("PAYMAN_API_SECRET environment variable not set")
             return None
             
         # Create agents with different strategies
         agent1 = MoneyBenchAgent(
             agent_id="aggressive",
             hud_api_key=hud_api_key,
-            payman_api_key=payman_api_key,
+            payman_api_secret=payman_api_secret,
             system_prompt=SYSTEM_PROMPT_AGGRESSIVE
         )
         
         agent2 = MoneyBenchAgent(
             agent_id="steady",
             hud_api_key=hud_api_key,
-            payman_api_key=payman_api_key,
+            payman_api_secret=payman_api_secret,
             system_prompt=SYSTEM_PROMPT_STEADY
         )
         
@@ -434,8 +442,8 @@ def main():
         logger.error("HUD_API_KEY environment variable not set")
         return 1
         
-    if not os.environ.get("PAYMAN_API_KEY"):
-        logger.error("PAYMAN_API_KEY environment variable not set")
+    if not os.environ.get("PAYMAN_API_SECRET"):
+        logger.error("PAYMAN_API_SECRET environment variable not set")
         return 1
         
     # Run the evaluation
