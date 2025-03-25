@@ -60,13 +60,9 @@ def test_payman_api():
     logger.info("Testing Payman API...")
     
     # Check for required environment variables
-    agent_id = os.getenv("PAYMAN_AGENT_ID")
     api_secret = os.getenv("PAYMAN_API_SECRET")
     payee_id = os.getenv("PAYMAN_PAYEE_ID")
     
-    if not agent_id:
-        logger.error("PAYMAN_AGENT_ID environment variable not found")
-        return False
     if not api_secret:
         logger.error("PAYMAN_API_SECRET environment variable not found")
         return False
@@ -76,7 +72,6 @@ def test_payman_api():
 
     url = "https://agent.payman.ai/api/payments/send-payment"
     headers = {
-        "x-payman-agent-id": agent_id,
         "x-payman-api-secret": api_secret,
         "Content-Type": "application/json",
         "Accept": "application/vnd.payman.v1+json"
@@ -84,7 +79,7 @@ def test_payman_api():
 
     payload = {
         "payeeId": payee_id,
-        "amountDecimal": 50.00,
+        "amountDecimal": 0.50,
         "memo": "API Test Payment"
     }
 
