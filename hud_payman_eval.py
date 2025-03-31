@@ -154,10 +154,6 @@ class MoneyBenchAgent:
             logger.error(f"Agent {self.agent_id}: HUD client not available, cannot run evaluation")
             return None
         
-        if not self.payman:
-            logger.error(f"Agent {self.agent_id}: Payman client not available, cannot run evaluation")
-            return None
-        
         try:
             logger.info(f"Starting evaluation for Agent {self.agent_id}...")
             
@@ -170,12 +166,11 @@ class MoneyBenchAgent:
                 return None
                 
             initial_balance = initial_balance_result.get("balance_decimal", 0.0)
-            
-            # Log initial balance
             logger.info(f"Agent {self.agent_id} initial balance: ${initial_balance:.2f} USD")
             
             # Load HUD gym and evalset
             try:
+                # Initialize the environment components
                 gym = await self.hud_client.load_gym(id="OSWorld-Ubuntu")
                 evalset = await self.hud_client.load_evalset(id="OSWorld-Ubuntu")
                 
@@ -189,53 +184,55 @@ class MoneyBenchAgent:
                 # Fetch available tasks
                 tasks = await run.fetch_task_ids()
                 
-                # Make a HUD environment
-                env = await run.make(metadata={"agent_id": self.agent_id})
-                await env.wait_for_ready()
-                
-                # Initialize an adapter based on the LLM you're using
-                # This is a placeholder - you would need to implement or import
-                # the appropriate adapter for your LLM
+                # Initialize Claude adapter
                 try:
                     from hud.adapters.claude.adapter import ClaudeAdapter
                     adapter = ClaudeAdapter()
                     logger.info(f"Agent {self.agent_id}: Claude adapter loaded")
                 except ImportError:
-                    logger.warning(f"Agent {self.agent_id}: Claude adapter not available, using generic adapter")
-                    adapter = None
+                    logger.error(f"Agent {self.agent_id}: Claude adapter not available")
+                    return None
                 
-                # Create a task on Payman as an example
+                # Create environment with the adapter
+                env = await run.make(adapter=adapter, metadata={"agent_id": self.agent_id})
+                
+                # Wait for environment to be ready
+                while True:
+                    state = await env.get_env_state()
+                    if state in ["running", "error"]:
+                        break
+                    await asyncio.sleep(2)
+                
+                # Create a task on Payman
                 sample_task = await self.create_task(
                     title=f"Help Agent {self.agent_id} complete a task",
-                    description=f"The agent needs help with the following task: {input_prompt}. Please provide detailed instructions on how to complete this task.",
-                    payout=0.50  # Reduced from $10.00 to $0.50
+                    description=f"The agent needs help with the following task: {input_prompt}",
+                    payout=0.50
                 )
-                
                 logger.info(f"Agent {self.agent_id}: Created Payman task: {sample_task}")
                 
                 # Run a HUD task
                 if tasks:
                     # Reset environment with the first task
-                    obs = await env.reset(tasks[0])
+                    obs = await env.reset(tasks[0], metadata={"run": f"moneybench-{self.agent_id}"})
                     logger.info(f"Agent {self.agent_id} task: {obs.text}")
                     
-                    # Agent loop (simplified)
-                    actions = []
-                    for i in range(8):  # Limited number of steps for testing
-                        if adapter:
-                            # Rescale screenshot if needed
-                            screenshot = adapter.rescale(obs.screenshot)
-                            
-                            # This is where your agent would make a decision
-                            # For now, we'll just simulate some basic actions
-                            action = {"input": "echo 'Hello from MoneyBench agent'"}
-                            logger.info(f"Agent {self.agent_id} action: {action}")
-                            
-                            # Convert to HUD action space
-                            actions = adapter.adapt_list([action])
-                        else:
-                            # Simplified action if no adapter is available
-                            actions = [{"input": "echo 'Hello from MoneyBench agent'"}]
+                    # Agent loop
+                    max_steps = 8
+                    for i in range(max_steps):
+                        # Rescale screenshot for Claude's resolution
+                        screenshot = adapter.rescale(obs.screenshot)
+                        
+                        # For now, we'll use a simple response
+                        # In production, this would be replaced with actual agent logic
+                        response = {
+                            "type": "command",
+                            "input": "echo 'Analyzing task requirements...'"
+                        }
+                        
+                        # Convert to HUD action space
+                        actions = adapter.adapt_list([response])
+                        logger.info(f"Agent {self.agent_id} action: {response}")
                         
                         # Step the environment
                         obs, reward, terminated, info = await env.step(actions)
@@ -243,10 +240,10 @@ class MoneyBenchAgent:
                         
                         if terminated:
                             break
-                
-                # Evaluate the environment
-                result = await env.evaluate()
-                logger.info(f"Agent {self.agent_id} evaluation result: {result}")
+                    
+                    # Evaluate the environment
+                    result = await env.evaluate()
+                    logger.info(f"Agent {self.agent_id} evaluation result: {result}")
                 
                 # Close the environment
                 await env.close()
