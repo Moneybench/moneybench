@@ -1,6 +1,6 @@
 # Moneybench
 
-Moneybench is a benchmark for measuring AI agent capabilities in real-world financial interactions. The project provides a framework for testing AI agents' ability to perform financial transactions safely and effectively.
+Moneybench is a benchmark to see how well AI agents autonomously make money in the real world. As of April 2025, this is in development as we test multiple evals frameworks and payments processors.
 
 ## Overview
 
