@@ -1,0 +1,27 @@
+{
+  "name": "payman_js_caller",
+  "version": "1.0.0",
+  "description": "Handles Payman payments via Node.js SDK for MoneyBench",
+  "main": "sendPaymanPayment.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/sendPaymanPayment.js",
+    "dev": "bun run src/sendPaymanPayment.ts",
+    "pay": "bun run src/sendPaymanPayment.ts"
+  },
+  "keywords": [
+    "payman",
+    "moneybench"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@paymanai/payman-ts": "^0.7.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+} 
