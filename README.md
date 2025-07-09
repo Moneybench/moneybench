@@ -5,7 +5,7 @@
 > Moneybench is an experimental benchmark that measures how well autonomous AI agents can *make money* in the real world under time pressure and with limited information.  
 > The current milestone focuses on a single end-to-end demo that combines:
 >
-> 1. **HUD (Headless Universal Desktop)** – a browser/control environment for agents.
+> 1. **HUD SDK** – a browser/control environment for agent: https://github.com/hud-evals/hud-sdk
 > 2. **Payman** – an API that allows programmatic peer-to-peer cash transfers.
 
 ---
