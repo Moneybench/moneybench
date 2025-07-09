@@ -1,6 +1,6 @@
 # Moneybench – Real-World Agent Benchmark
 
-> **Status:** Active development (May 2025)
+> **Status:** Active development (May 2025) VERY WIP
 >
 > Moneybench is an experimental benchmark that measures how well autonomous AI agents can *make money* in the real world under time pressure and with limited information.  
 > The current milestone focuses on a single end-to-end demo that combines:
