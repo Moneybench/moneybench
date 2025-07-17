@@ -9,6 +9,12 @@
 > 2. **Payman** – an API that allows programmatic peer-to-peer cash transfers.
 
 ---
+Planning analysis from: https://github.com/menhguin/moneybench_pt1_planning
+<img width="707" height="619" alt="image" src="https://github.com/user-attachments/assets/e6f40823-1186-4180-a13a-4aadb11b2107" />
+
+<img width="772" height="608" alt="image" src="https://github.com/user-attachments/assets/0ecda393-bc39-4c20-a8d9-09816714ce5a" />
+
+---
 
 ## 1  High-Level Demo Flow
 
